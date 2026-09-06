@@ -1,5 +1,5 @@
 /* ==========================================================================
-   RESET & DESIGN TOKENS
+   RESET & THEME VARIABLES
    ========================================================================== */
 *,
 *::before,
@@ -11,18 +11,18 @@
 
 :root {
   --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-
-  /* Color Palette - Light Mode */
-  --bg: #f4f8fe;
-  --card: rgba(255, 255, 255, 0.72);
-  --card-hover: rgba(255, 255, 255, 0.9);
+  
+  /* Light Theme */
+  --bg: #f3f7fd;
+  --card: rgba(255, 255, 255, 0.75);
+  --card-hover: rgba(255, 255, 255, 0.95);
   --text: #0f172a;
   --muted: #64748b;
   --primary: #2563eb;
   --secondary: #06b6d4;
-  --border: rgba(226, 232, 240, 0.8);
+  --border: rgba(226, 232, 240, 0.85);
   --shadow: 0 10px 30px -5px rgba(37, 99, 235, 0.08);
-  --shadow-hover: 0 15px 35px -5px rgba(37, 99, 235, 0.16);
+  --shadow-hover: 0 14px 35px -5px rgba(37, 99, 235, 0.15);
 
   --current-card-bg: linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%);
   --current-card-shadow: 0 20px 40px -10px rgba(29, 78, 216, 0.35);
@@ -32,17 +32,17 @@
 }
 
 body.dark {
-  /* Color Palette - Dark Mode */
+  /* Dark Theme */
   --bg: #090d16;
-  --card: rgba(18, 24, 38, 0.65);
-  --card-hover: rgba(26, 34, 53, 0.85);
+  --card: rgba(18, 24, 38, 0.7);
+  --card-hover: rgba(26, 34, 53, 0.9);
   --text: #f8fafc;
   --muted: #94a3b8;
   --primary: #3b82f6;
   --secondary: #22d3ee;
   --border: rgba(255, 255, 255, 0.08);
-  --shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.45);
-  --shadow-hover: 0 18px 40px -5px rgba(0, 0, 0, 0.65);
+  --shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 18px 40px -5px rgba(0, 0, 0, 0.7);
 
   --current-card-bg: linear-gradient(135deg, #1e3a8a 0%, #0e7490 100%);
   --current-card-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.6);
@@ -51,9 +51,6 @@ body.dark {
   --glow-2: rgba(14, 116, 144, 0.2);
 }
 
-/* ==========================================================================
-   GLOBAL LAYOUT & BACKGROUND
-   ========================================================================== */
 body {
   font-family: var(--font-main);
   color: var(--text);
@@ -126,18 +123,15 @@ body {
   transform: translateY(-1px);
 }
 
-.nav-actions button:active {
-  transform: translateY(0);
-}
-
 /* ==========================================================================
    HERO & SEARCH
    ========================================================================== */
 .hero {
   text-align: center;
-  padding: 25px 0 35px;
+  padding: 25px 0 30px;
   max-width: 720px;
   margin: auto;
+  position: relative;
 }
 
 .small-title {
@@ -154,7 +148,7 @@ body {
 }
 
 .hero h1 {
-  font-size: 44px;
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
   font-weight: 800;
   letter-spacing: -1.2px;
   line-height: 1.15;
@@ -168,8 +162,9 @@ body {
 
 .search-box {
   max-width: 620px;
-  margin: 30px auto 14px;
+  margin: 28px auto 14px;
   display: flex;
+  align-items: center;
   gap: 8px;
   background: var(--card);
   padding: 6px;
@@ -182,24 +177,35 @@ body {
 
 .search-box input {
   flex: 1;
-  padding: 14px 18px;
-  border: 1px solid transparent;
-  border-radius: 14px;
+  padding: 14px 16px;
+  border: none;
+  background: transparent;
   outline: none;
   font-size: 15px;
   font-family: inherit;
-  background: transparent;
   color: var(--text);
-  transition: border-color 0.2s;
 }
 
 .search-box input::placeholder {
   color: var(--muted);
 }
 
-.search-box button {
+.clear-btn {
+  background: none;
   border: none;
-  padding: 0 24px;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+.clear-btn:hover {
+  color: var(--text);
+}
+
+.search-box button:last-child {
+  border: none;
+  padding: 14px 26px;
   border-radius: 14px;
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: #ffffff;
@@ -207,16 +213,12 @@ body {
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 6px 16px -2px rgba(37, 99, 235, 0.35);
-  transition: opacity 0.2s ease, transform 0.15s ease;
+  transition: opacity 0.2s, transform 0.15s;
 }
 
-.search-box button:hover {
+.search-box button:last-child:hover {
   opacity: 0.93;
   transform: translateY(-1px);
-}
-
-.search-box button:active {
-  transform: translateY(0);
 }
 
 .location-btn {
@@ -228,10 +230,11 @@ body {
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   padding: 6px 14px;
   border-radius: 9999px;
   transition: background 0.2s;
+  margin-top: 6px;
 }
 
 .location-btn:hover {
@@ -241,13 +244,12 @@ body {
 /* ==========================================================================
    AUTOCOMPLETE & STATUS BANNERS
    ========================================================================== */
-#suggestions {
+.suggestions-list {
   max-width: 620px;
   margin: 6px auto 0;
   text-align: left;
 }
 
-.suggestion,
 .suggestion-item {
   background: var(--card);
   padding: 12px 18px;
@@ -264,36 +266,44 @@ body {
   transition: background 0.15s, transform 0.15s;
 }
 
-.suggestion:hover,
 .suggestion-item:hover,
 .suggestion-item.selected {
   background: var(--card-hover);
   transform: translateX(4px);
+  border-left: 3px solid var(--primary);
 }
 
-#loading,
-#error {
-  text-align: center;
-  margin: 20px auto;
-  max-width: 550px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-#loading {
+.sugg-coords {
+  font-size: 12px;
   color: var(--muted);
 }
 
-#error {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  padding: 10px 16px;
+.loading-banner,
+.error-banner {
+  text-align: center;
+  margin: 16px auto;
+  max-width: 550px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 16px;
   border-radius: 12px;
 }
 
-#weather {
-  display: none;
+.loading-banner {
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.error-banner {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Ensures section is ready to show */
+.weather-section {
+  display: block;
 }
 
 /* ==========================================================================
@@ -320,7 +330,6 @@ body {
   font-weight: 700;
   opacity: 0.85;
   letter-spacing: 2px;
-  text-transform: uppercase;
 }
 
 .current-card h2 {
@@ -330,30 +339,29 @@ body {
   margin: 4px 0;
 }
 
-#dateText {
+.sub-text {
   font-size: 14px;
   opacity: 0.85;
 }
 
 .weather-icon {
-  font-size: 72px;
+  font-size: 70px;
   line-height: 1;
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
 }
 
 .temperature {
-  font-size: 82px;
+  font-size: 80px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -2.5px;
-  margin-top: 20px;
+  margin-top: 18px;
   font-variant-numeric: tabular-nums;
 }
 
 #unit {
-  font-size: 34px;
+  font-size: 36px;
   font-weight: 600;
-  opacity: 0.8;
+  opacity: 0.85;
   vertical-align: top;
 }
 
@@ -383,7 +391,7 @@ body {
 .hour-card,
 .forecast-card,
 .sun-card,
-.favorite-card {
+.favorite-chip {
   background: var(--card);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
@@ -497,7 +505,7 @@ body {
 
 .hour-icon {
   font-size: 28px;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 
 .hour-temp {
@@ -588,21 +596,38 @@ body {
   flex-wrap: wrap;
 }
 
-.favorite-card {
-  padding: 10px 18px;
+.favorite-chip {
+  padding: 8px 16px;
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
 }
 
-.favorite-card:hover {
+.favorite-chip:hover {
   transform: translateY(-2px);
   background: var(--card-hover);
   border-color: var(--primary);
 }
 
+.favorite-chip .remove-fav {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  margin-left: 4px;
+}
+
+.favorite-chip .remove-fav:hover {
+  color: #ef4444;
+}
+
 /* ==========================================================================
-   FOOTER
+   FOOTER & UTILITIES
    ========================================================================== */
 footer {
   text-align: center;
@@ -613,12 +638,26 @@ footer {
   margin-top: 40px;
 }
 
+.hidden {
+  display: none !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
 /* ==========================================================================
-   RESPONSIVE BREAKPOINTS
+   RESPONSIVENESS
    ========================================================================== */
 @media (max-width: 768px) {
   .hero h1 {
-    font-size: 34px;
+    font-size: 32px;
   }
 
   .stats-grid {
@@ -636,65 +675,21 @@ footer {
   .temperature {
     font-size: 64px;
   }
-
-  .current-top {
-    align-items: flex-start;
-  }
-
-  .weather-icon {
-    font-size: 60px;
-  }
 }
 
 @media (max-width: 520px) {
-  .navbar {
-    padding: 16px 20px;
-  }
-
-  .logo {
-    font-size: 19px;
-  }
-
-  .container {
-    padding: 14px;
-  }
-
   .search-box {
     flex-direction: column;
-    padding: 10px;
+    padding: 8px;
     border-radius: 18px;
   }
 
-  .search-box button {
-    padding: 14px;
-  }
-
-  .current-card {
-    padding: 24px;
-    border-radius: 24px;
-  }
-
-  .current-card h2 {
-    font-size: 28px;
-  }
-
-  .temperature {
-    font-size: 52px;
-  }
-
-  .stats-grid {
-    gap: 10px;
-  }
-
-  .stat-card {
-    padding: 16px;
+  .search-box button:last-child {
+    width: 100%;
+    padding: 12px;
   }
 
   .sun-grid {
     grid-template-columns: 1fr;
-  }
-
-  .forecast-card {
-    padding: 12px 14px;
   }
 }
