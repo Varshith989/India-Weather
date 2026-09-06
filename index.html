@@ -1,415 +1,207 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>India Weather Pro</title>
+  <title>India Weather Pro • Real-time Climate Dashboard</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+
+  <!-- Background Ambient Glow -->
+  <div class="ambient-glow" id="ambientGlow"></div>
 
   <!-- NAVBAR -->
   <header class="navbar">
-
     <div class="logo">
-      🇮🇳 India<span>Weather</span>
+      <span class="flag-icon">🇮🇳</span> India<span>Weather</span>
     </div>
 
     <div class="nav-actions">
-      <button id="unitBtn">°C</button>
-      <button id="themeBtn">🌙</button>
+      <button id="unitBtn" class="pill-btn" aria-label="Toggle Temperature Unit">°C</button>
+      <button id="themeBtn" class="pill-btn icon-btn" aria-label="Toggle Dark/Light Mode">
+        <i data-lucide="moon" id="themeIcon"></i>
+      </button>
     </div>
-
   </header>
-
 
   <main class="container">
 
-    <!-- HERO -->
+    <!-- HERO / SEARCH -->
     <section class="hero">
+      <span class="badge">LIVE WEATHER RADAR</span>
+      <h1>Accurate forecasts across India</h1>
+      <p>Search any Indian district, metro, or town for real-time conditions.</p>
 
-      <p class="small-title">
-        LIVE WEATHER
-      </p>
+      <form class="search-box" id="searchForm" role="search">
+        <div class="input-wrapper">
+          <i data-lucide="search" class="search-icon"></i>
+          <input
+            id="cityInput"
+            type="text"
+            placeholder="Search city e.g. Hyderabad, Bengaluru, Pune..."
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="button" id="clearInputBtn" class="clear-btn hidden" aria-label="Clear search">✕</button>
+        </div>
+        <button type="submit" id="searchBtn" class="primary-btn">Search</button>
+      </form>
 
-      <h1>
-        Weather across India 🌤️
-      </h1>
-
-      <p>
-        Search any Indian city and get live weather information.
-      </p>
-
-
-      <!-- SEARCH -->
-      <div class="search-box">
-
-        <input
-          id="cityInput"
-          type="text"
-          placeholder="Search city e.g. Hyderabad"
-        >
-
-        <button id="searchBtn">
-          🔍 Search
+      <div class="search-actions">
+        <button id="locationBtn" class="location-btn">
+          <i data-lucide="map-pin"></i> Use My Current Location
         </button>
-
       </div>
 
-
-      <!-- LOCATION -->
-      <button
-        id="locationBtn"
-        class="location-btn"
-      >
-        📍 Use My Location
-      </button>
-
-
-      <!-- SEARCH SUGGESTIONS -->
-      <div id="suggestions"></div>
-
+      <!-- Quick autocomplete dropdown -->
+      <div id="suggestions" class="suggestions-list hidden"></div>
     </section>
 
+    <!-- STATUS / ERROR BANNERS -->
+    <div id="error" class="error-banner hidden" role="alert"></div>
 
-    <!-- LOADING -->
-    <div id="loading">
-      ⏳ Loading weather...
-    </div>
+    <!-- MAIN WEATHER DASHBOARD -->
+    <section id="weather" class="weather-section">
 
-
-    <!-- ERROR -->
-    <div id="error"></div>
-
-
-    <!-- WEATHER CONTENT -->
-    <section
-      id="weather"
-      class="weather-section"
-    >
-
-
-      <!-- CURRENT WEATHER -->
+      <!-- CURRENT WEATHER HERO CARD -->
       <div class="current-card">
-
         <div class="current-top">
-
           <div>
-
-            <p class="label">
-              CURRENT WEATHER
-            </p>
-
-            <h2 id="cityName">
-              Hyderabad
-            </h2>
-
-            <p id="dateText"></p>
-
+            <span class="label">CURRENT CONDITIONS</span>
+            <h2 id="cityName">--</h2>
+            <p id="dateText" class="sub-text">--</p>
           </div>
-
-
-          <div
-            class="weather-icon"
-            id="weatherIcon"
-          >
-            ☀️
+          <div class="weather-hero-icon" id="weatherIconContainer">
+            <i data-lucide="sun" id="weatherIcon"></i>
           </div>
-
         </div>
 
-
-        <!-- TEMPERATURE -->
-        <div class="temperature">
-
-          <span id="temperature">
-            --
-          </span>
-
-          °
-
-          <span id="unit">
-            C
-          </span>
-
+        <div class="temp-wrapper">
+          <span id="temperature" class="temp-num">--</span>
+          <span class="temp-deg">°</span>
+          <span id="unit" class="temp-unit">C</span>
         </div>
 
-
-        <!-- CONDITION -->
-        <h3 id="condition">
-          Clear Sky
-        </h3>
-
-
-        <!-- FEELS LIKE -->
-        <p class="feels">
-
-          Feels like
-
-          <span id="feelsLike">
-            --
-          </span>
-
-          °
-
-        </p>
-
+        <h3 id="condition" class="condition-text">Fetching data...</h3>
+        <p class="feels">Feels like <span id="feelsLike">--</span>°</p>
       </div>
 
-
-
-      <!-- WEATHER STATS -->
+      <!-- STATS GRID -->
       <div class="stats-grid">
-
-
-        <!-- HUMIDITY -->
         <div class="stat-card">
-
-          <div class="stat-icon">
-            💧
+          <div class="stat-header">
+            <i data-lucide="droplets" class="stat-icon icon-blue"></i>
+            <p>Humidity</p>
           </div>
-
-          <p>
-            Humidity
-          </p>
-
-          <strong id="humidity">
-            --%
-          </strong>
-
+          <strong id="humidity">--%</strong>
         </div>
 
-
-        <!-- WIND -->
         <div class="stat-card">
-
-          <div class="stat-icon">
-            💨
+          <div class="stat-header">
+            <i data-lucide="wind" class="stat-icon icon-cyan"></i>
+            <p>Wind Speed</p>
           </div>
-
-          <p>
-            Wind
-          </p>
-
-          <strong id="wind">
-            -- km/h
-          </strong>
-
+          <strong id="wind">-- km/h</strong>
         </div>
 
-
-        <!-- RAIN -->
         <div class="stat-card">
-
-          <div class="stat-icon">
-            🌧️
+          <div class="stat-header">
+            <i data-lucide="cloud-rain" class="stat-icon icon-indigo"></i>
+            <p>Precipitation</p>
           </div>
-
-          <p>
-            Rain Chance
-          </p>
-
-          <strong id="rain">
-            --%
-          </strong>
-
+          <strong id="rain">--%</strong>
         </div>
 
-
-        <!-- UV -->
         <div class="stat-card">
-
-          <div class="stat-icon">
-            ☀️
+          <div class="stat-header">
+            <i data-lucide="sun-medium" class="stat-icon icon-amber"></i>
+            <p>UV Index</p>
           </div>
-
-          <p>
-            UV Index
-          </p>
-
-          <strong id="uv">
-            --
-          </strong>
-
+          <strong id="uv">--</strong>
         </div>
 
-
-        <!-- VISIBILITY -->
         <div class="stat-card">
-
-          <div class="stat-icon">
-            👁️
+          <div class="stat-header">
+            <i data-lucide="eye" class="stat-icon icon-emerald"></i>
+            <p>Visibility</p>
           </div>
-
-          <p>
-            Visibility
-          </p>
-
-          <strong id="visibility">
-            -- km
-          </strong>
-
+          <strong id="visibility">-- km</strong>
         </div>
 
-
-        <!-- WIND DIRECTION -->
         <div class="stat-card">
-
-          <div class="stat-icon">
-            🧭
+          <div class="stat-header">
+            <i data-lucide="compass" class="stat-icon icon-violet"></i>
+            <p>Wind Direction</p>
           </div>
-
-          <p>
-            Wind Direction
-          </p>
-
-          <strong id="windDirection">
-            --°
-          </strong>
-
+          <strong id="windDirection">--°</strong>
         </div>
-
       </div>
-
-
 
       <!-- HOURLY FORECAST -->
       <section class="section">
-
         <div class="section-heading">
-
-          <h2>
-            ⏰ Hourly Forecast
-          </h2>
-
+          <h2><i data-lucide="clock"></i> Hourly Forecast</h2>
         </div>
-
-
-        <div
-          id="hourly"
-          class="hourly-container"
-        ></div>
-
+        <div id="hourly" class="hourly-container scroll-snap-x"></div>
       </section>
-
-
 
       <!-- 7 DAY FORECAST -->
       <section class="section">
-
         <div class="section-heading">
-
-          <h2>
-            📅 7-Day Forecast
-          </h2>
-
+          <h2><i data-lucide="calendar-days"></i> 7-Day Forecast</h2>
         </div>
-
-
-        <div
-          id="forecast"
-          class="forecast"
-        ></div>
-
+        <div id="forecast" class="forecast-list"></div>
       </section>
-
-
 
       <!-- SUNRISE / SUNSET -->
       <section class="sun-grid">
-
-
-        <!-- SUNRISE -->
         <div class="sun-card">
-
-          <span>
-            🌅
-          </span>
-
+          <i data-lucide="sunrise" class="sun-icon sunrise-color"></i>
           <div>
-
-            <p>
-              Sunrise
-            </p>
-
-            <strong id="sunrise">
-              --
-            </strong>
-
+            <p>Sunrise</p>
+            <strong id="sunrise">--:-- AM</strong>
           </div>
-
         </div>
 
-
-        <!-- SUNSET -->
         <div class="sun-card">
-
-          <span>
-            🌇
-          </span>
-
+          <i data-lucide="sunset" class="sun-icon sunset-color"></i>
           <div>
-
-            <p>
-              Sunset
-            </p>
-
-            <strong id="sunset">
-              --
-            </strong>
-
+            <p>Sunset</p>
+            <strong id="sunset">--:-- PM</strong>
           </div>
-
         </div>
-
       </section>
-
-
 
       <!-- FAVORITE CITIES -->
       <section class="section">
-
         <div class="section-heading">
-
-          <h2>
-            ❤️ Favorite Cities
-          </h2>
-
-
-          <button id="favoriteBtn">
-            ＋ Add City
+          <h2><i data-lucide="heart"></i> Pinned Locations</h2>
+          <button id="favoriteBtn" class="pill-btn outline">
+            <i data-lucide="plus"></i> Pin Current City
           </button>
-
         </div>
-
-
-        <div
-          id="favorites"
-          class="favorites"
-        ></div>
-
+        <div id="favorites" class="favorites-grid"></div>
       </section>
-
 
     </section>
 
   </main>
 
-
   <!-- FOOTER -->
   <footer>
-
-    <p>
-      IndiaWeather • Frontend Project
-    </p>
-
+    <p>IndiaWeather Pro • Designed with clean modern vanilla web standards</p>
   </footer>
 
-
-  <!-- JAVASCRIPT -->
   <script src="script.js"></script>
-
 </body>
 </html>
