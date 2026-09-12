@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Search, MapPin, Sun, Moon, X, Loader2, Globe } from "lucide-react";
+import { Search, MapPin, Sun, Moon, X, Loader2 } from "lucide-react";
 import type { GeoLocation } from "../types/weather";
-import type { Language } from "../utils/i18n";
 import { searchIndianLocations } from "../services/geoApi";
 
 interface NavbarProps {
@@ -11,8 +10,6 @@ interface NavbarProps {
   onToggleUnit: () => void;
   isDark: boolean;
   onToggleTheme: () => void;
-  currentLang: Language;
-  onSelectLang: (lang: Language) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -22,16 +19,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleUnit,
   isDark,
   onToggleTheme,
-  currentLang,
-  onSelectLang,
 }) => {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<GeoLocation[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showLangMenu, setShowLangMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const langRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -57,9 +50,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
       }
-      if (langRef.current && !langRef.current.contains(e.target as Node)) {
-        setShowLangMenu(false);
-      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -76,13 +66,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
     setIsSearching(false);
   };
-
-  const languages: { code: Language; label: string }[] = [
-    { code: "en", label: "English (EN)" },
-    { code: "hi", label: "हिन्दी (HI)" },
-    { code: "te", label: "తెలుగు (TE)" },
-    { code: "ta", label: "தமிழ் (TA)" },
-  ];
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 dark:bg-slate-950/85 border-b border-slate-200 dark:border-slate-800/80 px-3 sm:px-6 py-2.5 sm:py-3.5 transition-colors shadow-xs w-full max-w-full">
@@ -102,68 +85,35 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Action Buttons (visible on mobile in top row, on desktop grouped right) */}
+          {/* Mobile Action Buttons (Compact right aligned) */}
           <div className="flex md:hidden items-center gap-1.5">
-            {/* Language */}
-            <div className="relative" ref={langRef}>
-              <button
-                onClick={() => setShowLangMenu(!showLangMenu)}
-                className="p-1.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-semibold flex items-center gap-1"
-                title="Change Language"
-              >
-                <Globe className="w-3.5 h-3.5 text-sky-500" />
-                <span className="uppercase text-[11px]">{currentLang}</span>
-              </button>
-
-              {showLangMenu && (
-                <div className="absolute top-full right-0 mt-2 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl overflow-hidden z-50 divide-y divide-slate-100 dark:divide-slate-800/60">
-                  {languages.map((l) => (
-                    <button
-                      key={l.code}
-                      onClick={() => {
-                        onSelectLang(l.code);
-                        setShowLangMenu(false);
-                      }}
-                      className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors ${
-                        currentLang === l.code
-                          ? "bg-sky-50 text-sky-600 font-bold dark:bg-sky-500/20 dark:text-sky-400"
-                          : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                      }`}
-                    >
-                      {l.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* GPS */}
+            {/* GPS Location */}
             <button
               onClick={onUseCurrentLocation}
               title="Use current GPS location"
-              className="p-1.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-sky-500 border border-slate-200 dark:border-slate-800 rounded-lg"
+              className="p-1.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-sky-500 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xs"
             >
-              <MapPin className="w-3.5 h-3.5" />
+              <MapPin className="w-4 h-4" />
             </button>
 
-            {/* Unit */}
+            {/* Unit Toggle */}
             <button
               onClick={onToggleUnit}
               title="Toggle Unit"
-              className="px-2 py-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[11px] font-semibold text-slate-700 dark:text-slate-300"
+              className="px-2 py-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs"
             >
               <span className={!isFahrenheit ? "text-sky-600 dark:text-sky-400 font-bold" : "text-slate-400"}>°C</span>
               <span className="text-slate-400 dark:text-slate-600 mx-0.5">|</span>
               <span className={isFahrenheit ? "text-sky-600 dark:text-sky-400 font-bold" : "text-slate-400"}>°F</span>
             </button>
 
-            {/* Theme */}
+            {/* Theme Toggle */}
             <button
               onClick={onToggleTheme}
               title="Toggle Theme"
-              className="p-1.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-lg"
+              className="p-1.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xs"
             >
-              {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5" />}
+              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
             </button>
           </div>
         </div>
@@ -222,39 +172,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Desktop Action Buttons */}
         <div className="hidden md:flex items-center gap-2 shrink-0">
-          {/* Vernacular Language Switcher */}
-          <div className="relative">
-            <button
-              onClick={() => setShowLangMenu(!showLangMenu)}
-              className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs"
-              title="Change Language"
-            >
-              <Globe className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
-              <span className="uppercase">{currentLang}</span>
-            </button>
-
-            {showLangMenu && (
-              <div className="absolute top-full right-0 mt-2 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl overflow-hidden z-50 divide-y divide-slate-100 dark:divide-slate-800/60">
-                {languages.map((l) => (
-                  <button
-                    key={l.code}
-                    onClick={() => {
-                      onSelectLang(l.code);
-                      setShowLangMenu(false);
-                    }}
-                    className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors ${
-                      currentLang === l.code
-                        ? "bg-sky-50 text-sky-600 font-bold dark:bg-sky-500/20 dark:text-sky-400"
-                        : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                    }`}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           <button
             onClick={onUseCurrentLocation}
             title="Use current GPS location"

@@ -33,7 +33,7 @@ export function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [alertDismissed, setAlertDismissed] = useState(false);
-  const [currentLang, setCurrentLang] = useState<Language>("en");
+  const [currentLang] = useState<Language>("en");
   const [showEmergency, setShowEmergency] = useState(false);
 
   const t = translations[currentLang];
@@ -149,8 +149,6 @@ export function App() {
         onToggleUnit={() => setIsFahrenheit(!isFahrenheit)}
         isDark={isDark}
         onToggleTheme={() => setIsDark(!isDark)}
-        currentLang={currentLang}
-        onSelectLang={(lang) => setCurrentLang(lang)}
       />
 
       {/* Main Content Area */}
