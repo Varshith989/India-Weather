@@ -26,12 +26,10 @@
 * Instant search by **6-digit Postal PIN Code** (e.g. `500081`, `110001`, `600028`) or city name.
 * Resolves directly to the local post office, district, and state.
 
-### 🎙️ Audio Weather Briefing
-* Built-in text-to-speech voice assistant providing spoken daily summaries of temperature, rain probability, and air quality.
-
-### 🌾 Kisan & Agro-Meteorology Advisory Mode
-* **Pesticide / Fertilizer Spraying Window**: Real-time evaluation of wind speed and rain risk.
-* **Irrigation Recommendation**: Balances evaporative water loss and forecasted downpours to prevent crop waterlogging.
+### 🎙️ Indian Natural Voice Weather Briefing (English & Hindi)
+* **Bilingual Speech Synthesis**: Instant spoken weather briefings in both **Natural Indian English (en-IN)** and **Natural Indian Hindi (hi-IN)**.
+* **Neural Voice Priority**: Automatically leverages top-tier natural/neural voices (e.g. `Microsoft Neerja Online (Natural)`, `Microsoft Prabhat`, `Microsoft Swara Online (Natural)`, `Google हिन्दी`, `Google English (India)`).
+* **Zero-Error Resilient Engine**: Built-in immunity against browser speech interrupts, Chromium garbage-collection cutoffs, and network glitches with automatic seamless fallbacks.
 
 ### 🌡️ Wet Bulb Temperature & Heat Stress
 * Thermodynamic wet bulb computation (Stull's formula) combining ambient heat with extreme Indian monsoon humidity.
