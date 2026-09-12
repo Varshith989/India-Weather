@@ -14,9 +14,10 @@ import { HourlyTimeline } from "./components/HourlyTimeline";
 import { ForecastGrid } from "./components/ForecastGrid";
 import { WeatherStats } from "./components/WeatherStats";
 import { SmartAdvisory } from "./components/SmartAdvisory";
+import type { SpeechLanguage } from "./services/speechService";
 import { speakWeatherBriefing, stopSpeaking, subscribeSpeakingState } from "./services/speechService";
 
-import { AlertTriangle, X, Loader2, Heart, Plus, PhoneCall, Sprout, Volume2, VolumeX } from "lucide-react";
+import { AlertTriangle, X, Loader2, Heart, Plus, PhoneCall, Volume2, VolumeX } from "lucide-react";
 
 export function App() {
   const [location, setLocation] = useState<GeoLocation>({
@@ -36,8 +37,19 @@ export function App() {
   const [alertDismissed, setAlertDismissed] = useState(false);
   const [currentLang] = useState<Language>("en");
   const [showEmergency, setShowEmergency] = useState(false);
-  const [isAgroMode, setIsAgroMode] = useState(false);
+  const [speechLang, setSpeechLang] = useState<SpeechLanguage>(() => {
+    const saved = localStorage.getItem("speech_lang");
+    return saved === "hi" ? "hi" : "en";
+  });
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const handleSelectSpeechLang = (lang: SpeechLanguage) => {
+    setSpeechLang(lang);
+    localStorage.setItem("speech_lang", lang);
+    if (isSpeaking) {
+      stopSpeaking();
+    }
+  };
 
   const t = translations[currentLang];
 
@@ -166,7 +178,7 @@ export function App() {
       humidity: weather.current.relative_humidity_2m,
       rainProbability: weather.daily.precipitation_probability_max[0] || 0,
       pm25: aqi?.current?.pm2_5,
-      isAgroMode,
+      speechLang,
     });
   };
 
@@ -259,19 +271,31 @@ export function App() {
 
           {/* Top-Notch Mode Switches */}
           <div className="flex items-center gap-2 shrink-0 self-start md:self-auto overflow-x-auto w-full md:w-auto pt-1 md:pt-0">
-            {/* Agro / Kisan Mode */}
-            <button
-              onClick={() => setIsAgroMode(!isAgroMode)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs shrink-0 ${
-                isAgroMode
-                  ? "bg-emerald-600 text-white shadow-emerald-600/20 ring-2 ring-emerald-500/30"
-                  : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60"
-              }`}
-              title="Toggle Kisan Agro-Meteorology Advisory Mode"
-            >
-              <Sprout className="w-3.5 h-3.5" />
-              <span>{isAgroMode ? "🌾 Agro Mode Active" : "🌾 Kisan Mode"}</span>
-            </button>
+            {/* Speech Language Switcher */}
+            <div className="flex items-center rounded-xl bg-slate-100 dark:bg-slate-800/90 p-0.5 border border-slate-200/80 dark:border-slate-700/60 text-xs font-semibold shrink-0">
+              <button
+                onClick={() => handleSelectSpeechLang("en")}
+                className={`px-2.5 py-1 rounded-lg transition-all ${
+                  speechLang === "en"
+                    ? "bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs font-bold"
+                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                }`}
+                title="Natural Indian English Speech"
+              >
+                🇮🇳 English
+              </button>
+              <button
+                onClick={() => handleSelectSpeechLang("hi")}
+                className={`px-2.5 py-1 rounded-lg transition-all ${
+                  speechLang === "hi"
+                    ? "bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs font-bold"
+                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                }`}
+                title="भारतीय प्राकृतिक हिंदी आवाज़"
+              >
+                🇮🇳 हिन्दी
+              </button>
+            </div>
 
             {/* Voice Copilot */}
             <button
@@ -281,10 +305,10 @@ export function App() {
                   ? "bg-sky-500 text-white animate-pulse"
                   : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60"
               }`}
-              title="Listen to Speech Synthesis Weather Briefing"
+              title={`Listen to Natural ${speechLang === "hi" ? "Hindi" : "Indian English"} Weather Briefing`}
             >
               {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-              <span>{isSpeaking ? "Stop Voice" : "🎙️ Voice Briefing"}</span>
+              <span>{isSpeaking ? "Stop Voice" : speechLang === "hi" ? "🎙️ आवाज़ ब्रीफिंग" : "🎙️ Voice Briefing"}</span>
             </button>
 
             {/* Emergency SOS Drawer Toggle */}
@@ -369,7 +393,6 @@ export function App() {
                   location={location}
                   weather={weather}
                   isFahrenheit={isFahrenheit}
-                  isAgroMode={isAgroMode}
                 />
               </div>
               <div className="lg:col-span-5 w-full">
@@ -412,10 +435,10 @@ export function App() {
               weather={weather}
               aqi={aqi}
               cityName={location.name}
-              isAgroMode={isAgroMode}
-              onToggleAgro={() => setIsAgroMode(!isAgroMode)}
               isSpeaking={isSpeaking}
               onToggleVoice={handleToggleVoice}
+              speechLang={speechLang}
+              onSelectSpeechLang={handleSelectSpeechLang}
             />
           </div>
         ) : null}

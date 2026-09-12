@@ -17,7 +17,6 @@ import {
   ArrowUpDown,
   MapPin,
   Clock,
-  Sprout,
   Compass,
 } from "lucide-react";
 
@@ -25,7 +24,6 @@ interface WeatherHeroProps {
   location: GeoLocation;
   weather: WeatherApiResponse;
   isFahrenheit: boolean;
-  isAgroMode?: boolean;
 }
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -45,7 +43,6 @@ export const WeatherHero: React.FC<WeatherHeroProps> = ({
   location,
   weather,
   isFahrenheit,
-  isAgroMode = false,
 }) => {
   const cur = weather.current;
   const daily = weather.daily;
@@ -181,18 +178,6 @@ export const WeatherHero: React.FC<WeatherHeroProps> = ({
         </div>
       </div>
 
-      {/* Agro Mode Banner (Shown when Agro mode is enabled) */}
-      {isAgroMode && (
-        <div className="mb-4 p-2.5 sm:p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/50 flex items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-semibold">
-            <Sprout className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>🌾 Kisan Agro Mode Active • Telemetry synced for crop protection</span>
-          </div>
-          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold text-[10px] uppercase shrink-0">
-            Agronomy On
-          </span>
-        </div>
-      )}
 
       {/* Bento Grid: 4 Micro Telemetry Cards (2x2 on Mobile, 4 columns on Desktop) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">

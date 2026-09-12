@@ -8,36 +8,30 @@ import {
   Volume2,
   VolumeX,
   Share2,
-  Sprout,
-  CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
+import type { SpeechLanguage } from "../services/speechService";
 import { speakWeatherBriefing, stopSpeaking } from "../services/speechService";
 
 interface SmartAdvisoryProps {
   weather: WeatherApiResponse;
   aqi: AirQualityResponse | null;
   cityName: string;
-  isAgroMode?: boolean;
-  onToggleAgro?: () => void;
   isSpeaking?: boolean;
   onToggleVoice?: () => void;
+  speechLang?: SpeechLanguage;
+  onSelectSpeechLang?: (lang: SpeechLanguage) => void;
 }
 
 export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
   weather,
   aqi,
   cityName,
-  isAgroMode,
-  onToggleAgro,
   isSpeaking: externalSpeaking,
   onToggleVoice: externalToggleVoice,
+  speechLang = "en",
+  onSelectSpeechLang,
 }) => {
   const [internalSpeaking, setInternalSpeaking] = useState(false);
-  const [internalAgro, setInternalAgro] = useState(false);
-
-  const showAgro = isAgroMode !== undefined ? isAgroMode : internalAgro;
-  const toggleAgro = onToggleAgro || (() => setInternalAgro(!internalAgro));
   const isSpeaking = externalSpeaking !== undefined ? externalSpeaking : internalSpeaking;
 
   const cur = weather.current;
@@ -67,19 +61,6 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
       ? "Heavy air moisture. Outdoor drying will take extended time; use indoor racks."
       : "Standard drying conditions. 3 to 4 hours required for laundry.";
 
-  // Agro & Kisan advisory
-  const isSpraySafe = cur.wind_speed_10m < 15 && rainProb < 20;
-  const sprayAdvice = isSpraySafe
-    ? "Favorable window for fertilizer & pesticide application (Gentle breeze, zero rain risk)."
-    : "Avoid spraying fertilizers/pesticides today due to higher winds or rain wash-off risk.";
-
-  const irrigationNeed =
-    daily.precipitation_sum[0] > 10
-      ? "Sufficient rain expected. Postpone field irrigation to prevent waterlogging."
-      : cur.temperature_2m > 34
-      ? "High evaporative loss. Light evening irrigation recommended for standing crops."
-      : "Normal soil moisture retention. Maintain standard watering cycle.";
-
   // Audio briefing via SpeechSynthesis
   const handleToggleVoice = () => {
     if (externalToggleVoice) {
@@ -101,7 +82,7 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
       humidity: cur.relative_humidity_2m,
       rainProbability: rainProb,
       pm25,
-      isAgroMode: showAgro,
+      speechLang,
       onStart: () => setInternalSpeaking(true),
       onEnd: () => setInternalSpeaking(false),
     });
@@ -121,7 +102,7 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
 
   return (
     <div className="rounded-2xl bg-white dark:bg-gradient-to-br dark:from-slate-900/80 dark:via-slate-900/60 dark:to-indigo-950/30 border border-slate-200/90 dark:border-slate-800/80 p-5 backdrop-blur-xl shadow-md dark:shadow-xl flex flex-col justify-between transition-colors">
-      {/* Header with Voice and Agro toggle */}
+      {/* Header with Voice and Language controls */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
@@ -131,17 +112,33 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={toggleAgro}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-all shadow-xs ${
-              showAgro
-                ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700"
-            }`}
-          >
-            <Sprout className="w-3.5 h-3.5" />
-            <span>{showAgro ? "Agro Mode On" : "🌾 Kisan Advisory"}</span>
-          </button>
+          {/* Language selector for speech */}
+          {onSelectSpeechLang && (
+            <div className="flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700 text-xs font-semibold">
+              <button
+                onClick={() => onSelectSpeechLang("en")}
+                className={`px-2 py-0.5 rounded-md transition-all ${
+                  speechLang === "en"
+                    ? "bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs font-bold"
+                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                }`}
+                title="Indian Natural English Speech"
+              >
+                EN
+              </button>
+              <button
+                onClick={() => onSelectSpeechLang("hi")}
+                className={`px-2 py-0.5 rounded-md transition-all ${
+                  speechLang === "hi"
+                    ? "bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs font-bold"
+                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                }`}
+                title="भारतीय प्राकृतिक हिंदी आवाज़"
+              >
+                हिन्दी
+              </button>
+            </div>
+          )}
 
           <button
             onClick={externalToggleVoice || handleToggleVoice}
@@ -150,10 +147,10 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
                 ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30 animate-pulse"
                 : "bg-sky-50 text-sky-700 hover:bg-sky-100 border-sky-300 dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-500/30 dark:hover:bg-sky-500/30"
             }`}
-            title="Listen to Natural Indian English Weather Briefing"
+            title={`Listen to Natural ${speechLang === "hi" ? "Hindi" : "Indian English"} Weather Briefing`}
           >
             {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-            <span>{isSpeaking ? "Stop Voice" : "🎙️ Voice Briefing"}</span>
+            <span>{isSpeaking ? "Stop Voice" : speechLang === "hi" ? "🎙️ आवाज़ ब्रीफिंग" : "🎙️ Voice Briefing"}</span>
           </button>
 
           <button
@@ -165,36 +162,6 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Kisan / Agro Advisory Banner */}
-      {showAgro && (
-        <div className="mb-4 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-700/40">
-          <div className="flex items-center gap-2 mb-2 text-emerald-700 dark:text-emerald-400 font-bold text-xs">
-            <Sprout className="w-4 h-4" />
-            <span>🌾 Kisan Agro-Meteorology Advisory for {cityName}</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
-            <div className="flex items-start gap-2 bg-white dark:bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800/30 shadow-xs">
-              {isSpraySafe ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-              ) : (
-                <AlertCircle className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
-              )}
-              <div>
-                <strong className="text-slate-800 dark:text-slate-200 block">Spraying Condition:</strong>
-                <span className="text-slate-600 dark:text-slate-300 text-[11px]">{sprayAdvice}</span>
-              </div>
-            </div>
-            <div className="flex items-start gap-2 bg-white dark:bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800/30 shadow-xs">
-              <CheckCircle2 className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
-              <div>
-                <strong className="text-slate-800 dark:text-slate-200 block">Irrigation Recommendation:</strong>
-                <span className="text-slate-600 dark:text-slate-300 text-[11px]">{irrigationNeed}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 3 Lifestyle Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
