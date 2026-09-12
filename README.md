@@ -37,12 +37,10 @@
 ### ⚠️ IMD-Style Extreme Weather Alerts
 * Dynamic warnings for heatwaves, severe cold waves, squalls, and heavy rainfall.
 
-### 🌐 Vernacular Multi-Language Localization
+### 🌐 Bilingual Localization
 * Instant language switching:
   * **English (EN)**
   * **हिन्दी (HI)**
-  * **తెలుగు (TE)**
-  * **தமிழ் (TA)**
 
 ### 🌓 Seamless Dual-Theme (Light & Dark Mode)
 * Full light and dark mode styling with smooth transitions, glassmorphic cards, and custom scrollbars.
