@@ -14,6 +14,7 @@ import { HourlyTimeline } from "./components/HourlyTimeline";
 import { ForecastGrid } from "./components/ForecastGrid";
 import { WeatherStats } from "./components/WeatherStats";
 import { SmartAdvisory } from "./components/SmartAdvisory";
+import { speakWeatherBriefing, stopSpeaking, subscribeSpeakingState } from "./services/speechService";
 
 import { AlertTriangle, X, Loader2, Heart, Plus, PhoneCall, Sprout, Volume2, VolumeX } from "lucide-react";
 
@@ -138,49 +139,35 @@ export function App() {
     }
   };
 
+  // Synchronize speaking state with speech audio engine
+  useEffect(() => {
+    return subscribeSpeakingState(setIsSpeaking);
+  }, []);
+
+  // Cancel speech whenever location changes
+  useEffect(() => {
+    stopSpeaking();
+  }, [location.latitude, location.longitude]);
+
   // Audio briefing via SpeechSynthesis
   const handleToggleVoice = () => {
-    if (!("speechSynthesis" in window)) {
-      setError("Speech synthesis is not supported on this browser.");
-      return;
-    }
-
     if (isSpeaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+      stopSpeaking();
       return;
     }
 
     if (!weather) return;
 
-    const cur = weather.current;
-    const pm25 = aqi?.current?.pm2_5 || 0;
-    const rainProb = weather.daily.precipitation_probability_max[0] || 0;
-    const textToSpeak = `Hello! Here is your India Weather briefing for ${location.name}. The current temperature is ${Math.round(
-      cur.temperature_2m
-    )} degrees Celsius with humidity at ${cur.relative_humidity_2m} percent. ${
-      rainProb > 40
-        ? `Rain probability is ${rainProb} percent, keep an umbrella handy.`
-        : "No significant rain is expected today."
-    } Air quality is ${
-      pm25 > 100 ? "poor, please consider wearing an N95 mask" : "in the satisfactory range"
-    }. Have a safe and wonderful day!`;
-
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-
-    const voices = window.speechSynthesis.getVoices();
-    const inVoice = voices.find(
-      (v) => v.lang.includes("en-IN") || v.lang.includes("hi-IN")
-    );
-    if (inVoice) utterance.voice = inVoice;
-
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    window.speechSynthesis.speak(utterance);
-    setIsSpeaking(true);
+    speakWeatherBriefing({
+      cityName: location.name,
+      temperature: weather.current.temperature_2m,
+      feelsLike: weather.current.apparent_temperature,
+      weatherCode: weather.current.weather_code,
+      humidity: weather.current.relative_humidity_2m,
+      rainProbability: weather.daily.precipitation_probability_max[0] || 0,
+      pm25: aqi?.current?.pm2_5,
+      isAgroMode,
+    });
   };
 
   // Weather Alert detection

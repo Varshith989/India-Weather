@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { speakWeatherBriefing, stopSpeaking } from "../services/speechService";
 
 interface SmartAdvisoryProps {
   weather: WeatherApiResponse;
@@ -86,43 +87,24 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
       return;
     }
 
-    if (!("speechSynthesis" in window)) {
-      alert("Speech synthesis is not supported on this browser.");
-      return;
-    }
-
     if (isSpeaking) {
-      window.speechSynthesis.cancel();
+      stopSpeaking();
       setInternalSpeaking(false);
       return;
     }
 
-    const textToSpeak = `Hello! Here is your India Weather briefing for ${cityName}. The current temperature is ${Math.round(
-      cur.temperature_2m
-    )} degrees Celsius with humidity at ${cur.relative_humidity_2m} percent. ${
-      rainProb > 40
-        ? `Rain chance is ${rainProb} percent, carry an umbrella.`
-        : "No significant rain is expected."
-    } Air quality is ${
-      pm25 > 100 ? "poor, please wear a mask" : "moderate to good"
-    }. Have a productive and safe day!`;
-
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-
-    // Pick Indian English voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const inVoice = voices.find(
-      (v) => v.lang.includes("en-IN") || v.lang.includes("hi-IN")
-    );
-    if (inVoice) utterance.voice = inVoice;
-
-    utterance.onend = () => setInternalSpeaking(false);
-    utterance.onerror = () => setInternalSpeaking(false);
-
-    window.speechSynthesis.speak(utterance);
-    setInternalSpeaking(true);
+    speakWeatherBriefing({
+      cityName,
+      temperature: cur.temperature_2m,
+      feelsLike: cur.apparent_temperature,
+      weatherCode: cur.weather_code,
+      humidity: cur.relative_humidity_2m,
+      rainProbability: rainProb,
+      pm25,
+      isAgroMode: showAgro,
+      onStart: () => setInternalSpeaking(true),
+      onEnd: () => setInternalSpeaking(false),
+    });
   };
 
   // WhatsApp share
@@ -168,6 +150,7 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
                 ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30 animate-pulse"
                 : "bg-sky-50 text-sky-700 hover:bg-sky-100 border-sky-300 dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-500/30 dark:hover:bg-sky-500/30"
             }`}
+            title="Listen to Natural Indian English Weather Briefing"
           >
             {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
             <span>{isSpeaking ? "Stop Voice" : "🎙️ Voice Briefing"}</span>
