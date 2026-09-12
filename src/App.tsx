@@ -140,7 +140,7 @@ export function App() {
   const alert = weather ? evaluateWeatherAlert(weather.current, weather.daily) : null;
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-200">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-200 w-full max-w-full overflow-x-hidden">
       {/* Navbar */}
       <Navbar
         onSelectLocation={(loc) => setLocation(loc)}
@@ -154,12 +154,12 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 lg:px-8 py-3.5 sm:py-6 space-y-3.5 sm:space-y-6 overflow-x-hidden">
         {/* Error Alert */}
         {error && (
-          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-400 text-sm flex items-center justify-between">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-400 text-xs sm:text-sm flex items-center justify-between">
             <span>{error}</span>
-            <button onClick={() => setError(null)} className="text-rose-500 hover:text-rose-400">
+            <button onClick={() => setError(null)} className="text-rose-500 hover:text-rose-400 p-1">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -168,7 +168,7 @@ export function App() {
         {/* Dynamic Weather Alert Banner */}
         {alert && !alertDismissed && (
           <div
-            className={`p-4 rounded-2xl border flex items-center justify-between gap-3 shadow-md transition-all ${
+            className={`p-3.5 sm:p-4 rounded-2xl border flex items-center justify-between gap-3 shadow-md transition-all ${
               alert.level === "red"
                 ? "bg-rose-50 border-rose-300 text-rose-900 dark:bg-rose-950/40 dark:border-rose-600/50 dark:text-rose-200"
                 : alert.level === "orange"
@@ -176,16 +176,16 @@ export function App() {
                 : "bg-amber-50 border-amber-300 text-amber-900 dark:bg-amber-950/40 dark:border-amber-600/50 dark:text-amber-200"
             }`}
           >
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 shrink-0 text-amber-500" />
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-amber-500" />
               <div>
-                <strong className="text-sm font-bold block">{alert.title}</strong>
-                <p className="text-xs opacity-90">{alert.description}</p>
+                <strong className="text-xs sm:text-sm font-bold block">{alert.title}</strong>
+                <p className="text-[11px] sm:text-xs opacity-90">{alert.description}</p>
               </div>
             </div>
             <button
               onClick={() => setAlertDismissed(true)}
-              className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+              className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
@@ -193,19 +193,19 @@ export function App() {
         )}
 
         {/* Action Top Bar: Favorite Cities & Emergency SOS toggle */}
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
-            <span className="text-slate-500 dark:text-slate-400 font-semibold shrink-0 flex items-center gap-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs w-full">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-thin w-full sm:w-auto">
+            <span className="text-slate-500 dark:text-slate-400 font-semibold shrink-0 flex items-center gap-1 text-[11px] sm:text-xs">
               <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> Quick Cities:
             </span>
             {favorites.map((fav) => (
               <button
                 key={fav}
                 onClick={() => handleSelectFavorite(fav)}
-                className={`px-3 py-1 rounded-full border shrink-0 transition-all font-medium ${
+                className={`px-2.5 py-1 rounded-full border shrink-0 transition-all font-medium text-[11px] sm:text-xs ${
                   location.name.toLowerCase().includes(fav.toLowerCase())
                     ? "bg-sky-100 text-sky-700 border-sky-300 font-bold dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-500/40"
-                    : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 dark:bg-slate-900/60 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 shadow-sm"
+                    : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 dark:bg-slate-900/60 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 shadow-xs"
                 }`}
               >
                 {fav}
@@ -214,7 +214,7 @@ export function App() {
             <button
               onClick={handleToggleFavorite}
               title="Save current location"
-              className="px-2.5 py-1 rounded-full border border-dashed border-slate-300 text-slate-500 hover:text-sky-600 hover:border-sky-400 dark:border-slate-700 dark:text-slate-400 dark:hover:text-sky-400 dark:hover:border-sky-500/50 flex items-center gap-1 shrink-0 transition-colors"
+              className="px-2 py-1 rounded-full border border-dashed border-slate-300 text-slate-500 hover:text-sky-600 hover:border-sky-400 dark:border-slate-700 dark:text-slate-400 dark:hover:text-sky-400 dark:hover:border-sky-500/50 flex items-center gap-1 shrink-0 transition-colors text-[11px] sm:text-xs"
             >
               <Plus className="w-3 h-3" /> Save current
             </button>
@@ -222,7 +222,7 @@ export function App() {
 
           <button
             onClick={() => setShowEmergency(!showEmergency)}
-            className="px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 dark:bg-rose-500/10 dark:border-rose-500/20 dark:text-rose-400 dark:hover:bg-rose-500/20 flex items-center gap-1.5 font-semibold transition-colors shadow-sm"
+            className="px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 dark:bg-rose-500/10 dark:border-rose-500/20 dark:text-rose-400 dark:hover:bg-rose-500/20 flex items-center justify-center gap-1.5 font-semibold transition-colors shadow-xs shrink-0 self-start sm:self-auto text-[11px] sm:text-xs"
           >
             <PhoneCall className="w-3 h-3" />
             <span>Disaster SOS Helplines</span>
@@ -231,46 +231,46 @@ export function App() {
 
         {/* Disaster Helpline Drawer */}
         {showEmergency && (
-          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-rose-200 dark:border-rose-500/30 shadow-md grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div className="p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400 block text-[11px]">NDRF Helpline</span>
-              <strong className="text-rose-600 dark:text-rose-400 text-sm font-bold">1078</strong>
+          <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-rose-200 dark:border-rose-500/30 shadow-md grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs w-full">
+            <div className="p-2 sm:p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400 block text-[10px] sm:text-[11px]">NDRF Helpline</span>
+              <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-bold">1078</strong>
             </div>
-            <div className="p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400 block text-[11px]">National Emergency</span>
-              <strong className="text-rose-600 dark:text-rose-400 text-sm font-bold">112</strong>
+            <div className="p-2 sm:p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400 block text-[10px] sm:text-[11px]">National Emergency</span>
+              <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-bold">112</strong>
             </div>
-            <div className="p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400 block text-[11px]">Medical Ambulance</span>
-              <strong className="text-rose-600 dark:text-rose-400 text-sm font-bold">108</strong>
+            <div className="p-2 sm:p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400 block text-[10px] sm:text-[11px]">Medical Ambulance</span>
+              <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-bold">108</strong>
             </div>
-            <div className="p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400 block text-[11px]">IMD Weather Toll-Free</span>
-              <strong className="text-rose-600 dark:text-rose-400 text-sm font-bold">1800-180-1717</strong>
+            <div className="p-2 sm:p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400 block text-[10px] sm:text-[11px]">IMD Weather Toll-Free</span>
+              <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-bold">1800-180-1717</strong>
             </div>
           </div>
         )}
 
         {/* Loading Spinner */}
         {isLoading ? (
-          <div className="py-24 flex flex-col items-center justify-center text-center gap-3">
-            <Loader2 className="w-10 h-10 text-sky-500 animate-spin" />
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              Fetching live weather & air quality telemetry for {location.name}...
+          <div className="py-20 sm:py-24 flex flex-col items-center justify-center text-center gap-3 w-full">
+            <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-sky-500 animate-spin" />
+            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+              Fetching live telemetry for {location.name}...
             </p>
           </div>
         ) : weather ? (
-          <div className="space-y-6">
+          <div className="space-y-3.5 sm:space-y-6 w-full">
             {/* Top Grid: Hero Weather Card + Air Quality Card */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-7">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-6 w-full">
+              <div className="lg:col-span-7 w-full">
                 <WeatherHero
                   location={location}
                   weather={weather}
                   isFahrenheit={isFahrenheit}
                 />
               </div>
-              <div className="lg:col-span-5">
+              <div className="lg:col-span-5 w-full">
                 <AqiCard aqiData={aqi} />
               </div>
             </div>
@@ -289,15 +289,15 @@ export function App() {
             />
 
             {/* Middle Grid: Live Doppler Radar + 7-Day Extended Outlook */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-7">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-6 w-full">
+              <div className="lg:col-span-7 w-full">
                 <RadarMap
                   latitude={location.latitude}
                   longitude={location.longitude}
                   cityName={location.name}
                 />
               </div>
-              <div className="lg:col-span-5">
+              <div className="lg:col-span-5 w-full">
                 <ForecastGrid
                   daily={weather.daily}
                   isFahrenheit={isFahrenheit}
@@ -316,8 +316,8 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-12 border-t border-slate-200 dark:border-slate-800/80 bg-white/70 dark:bg-slate-950/60 py-6 px-4 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <footer className="mt-8 sm:mt-12 border-t border-slate-200 dark:border-slate-800/80 bg-white/70 dark:bg-slate-950/60 py-4 sm:py-6 px-4 text-center text-[11px] sm:text-xs text-slate-500 w-full">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3">
           <p>
             🇮🇳 <strong>{t.appName} PRO</strong> • Built with Open-Meteo High Resolution Model, CPCB NAQI Standards, & RainViewer Radar.
           </p>

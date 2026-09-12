@@ -156,44 +156,44 @@ export const RadarMap: React.FC<RadarMapProps> = ({
   const isLiveFrame = currentFrameIndex === frames.length - 1;
 
   return (
-    <div className="relative rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/90 dark:border-slate-800/80 p-5 backdrop-blur-xl shadow-md dark:shadow-xl flex flex-col justify-between overflow-hidden transition-colors">
+    <div className="relative rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/90 dark:border-slate-800/80 p-3.5 sm:p-5 backdrop-blur-xl shadow-md dark:shadow-xl flex flex-col justify-between overflow-hidden transition-colors w-full">
       {/* Top Header */}
-      <div className="flex items-center justify-between mb-3 z-10">
-        <div className="flex items-center gap-2">
-          <Radio className="w-4 h-4 text-sky-500 dark:text-sky-400 animate-pulse" />
-          <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-            Live Doppler Weather Radar • {cityName}
+      <div className="flex items-center justify-between mb-2.5 sm:mb-3 z-10">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-500 dark:text-sky-400 animate-pulse" />
+          <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100">
+            Doppler Radar • {cityName}
           </h3>
         </div>
 
         <button
           onClick={toggleRadar}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
+          className={`flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold border transition-all ${
             isRadarActive
               ? "bg-sky-50 text-sky-700 border-sky-300 dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-500/30"
               : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
           }`}
         >
-          <Layers className="w-3.5 h-3.5" />
-          {isRadarActive ? "Radar Active" : "Radar Off"}
+          <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          {isRadarActive ? "Radar On" : "Radar Off"}
         </button>
       </div>
 
       {/* Map Element */}
-      <div className="w-full h-64 md:h-72 rounded-xl overflow-hidden relative border border-slate-200 dark:border-slate-800/60 shadow-inner">
+      <div className="w-full h-56 sm:h-64 md:h-72 rounded-xl overflow-hidden relative border border-slate-200 dark:border-slate-800/60 shadow-inner">
         <div ref={mapContainerRef} className="w-full h-full" />
 
         {/* Legend Overlay */}
-        <div className="absolute bottom-2 left-2 z-[400] bg-white/90 dark:bg-slate-950/80 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800/80 text-[10px] text-slate-700 dark:text-slate-300 flex items-center gap-2 pointer-events-none shadow-xs">
-          <span>Precipitation:</span>
+        <div className="absolute bottom-2 left-2 z-[400] bg-white/90 dark:bg-slate-950/80 backdrop-blur-md px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg border border-slate-200 dark:border-slate-800/80 text-[9px] sm:text-[10px] text-slate-700 dark:text-slate-300 flex items-center gap-1.5 sm:gap-2 pointer-events-none shadow-xs">
+          <span>Precip:</span>
           <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2 bg-blue-400 rounded-sm inline-block" />
+            <span className="w-2 h-1.5 sm:w-2.5 sm:h-2 bg-blue-400 rounded-xs inline-block" />
             <span>Light</span>
-            <span className="w-2.5 h-2 bg-green-500 rounded-sm inline-block ml-1" />
-            <span>Moderate</span>
-            <span className="w-2.5 h-2 bg-yellow-400 rounded-sm inline-block ml-1" />
+            <span className="w-2 h-1.5 sm:w-2.5 sm:h-2 bg-green-500 rounded-xs inline-block ml-0.5" />
+            <span>Mod</span>
+            <span className="w-2 h-1.5 sm:w-2.5 sm:h-2 bg-yellow-400 rounded-xs inline-block ml-0.5" />
             <span>Heavy</span>
-            <span className="w-2.5 h-2 bg-red-600 rounded-sm inline-block ml-1" />
+            <span className="w-2 h-1.5 sm:w-2.5 sm:h-2 bg-red-600 rounded-xs inline-block ml-0.5" />
             <span>Storm</span>
           </div>
         </div>
@@ -201,12 +201,12 @@ export const RadarMap: React.FC<RadarMapProps> = ({
 
       {/* Radar Timeline & Playback Controls */}
       {frames.length > 0 && isRadarActive && (
-        <div className="mt-3.5 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center gap-3">
+        <div className="mt-2.5 sm:mt-3.5 pt-2 sm:pt-3 border-t border-slate-200 dark:border-slate-800/80 flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3">
           <button
             onClick={togglePlay}
-            className="p-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-300 dark:bg-sky-500/20 dark:hover:bg-sky-500/30 dark:text-sky-400 dark:border-sky-500/30 rounded-lg text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors"
+            className="px-2 py-1 sm:px-2.5 sm:py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-300 dark:bg-sky-500/20 dark:hover:bg-sky-500/30 dark:text-sky-400 dark:border-sky-500/30 rounded-lg text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors"
           >
-            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+            {isPlaying ? <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             <span>{isPlaying ? "Pause" : "Play Loop"}</span>
           </button>
 
@@ -216,13 +216,13 @@ export const RadarMap: React.FC<RadarMapProps> = ({
             max={frames.length - 1}
             value={currentFrameIndex}
             onChange={handleSliderChange}
-            className="flex-1 accent-sky-500 dark:accent-sky-400 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg cursor-pointer"
+            className="flex-1 min-w-[90px] accent-sky-500 dark:accent-sky-400 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg cursor-pointer"
           />
 
-          <div className="flex items-center gap-1.5 shrink-0 text-xs">
-            <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold">{currentTimestamp}</span>
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 text-xs ml-auto">
+            <span className="font-mono text-slate-800 dark:text-slate-200 text-[11px] sm:text-xs font-semibold">{currentTimestamp}</span>
             {isLiveFrame && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30">
+              <span className="px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30">
                 LIVE
               </span>
             )}
