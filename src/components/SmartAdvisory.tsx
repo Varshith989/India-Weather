@@ -17,15 +17,27 @@ interface SmartAdvisoryProps {
   weather: WeatherApiResponse;
   aqi: AirQualityResponse | null;
   cityName: string;
+  isAgroMode?: boolean;
+  onToggleAgro?: () => void;
+  isSpeaking?: boolean;
+  onToggleVoice?: () => void;
 }
 
 export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
   weather,
   aqi,
   cityName,
+  isAgroMode,
+  onToggleAgro,
+  isSpeaking: externalSpeaking,
+  onToggleVoice: externalToggleVoice,
 }) => {
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [showAgro, setShowAgro] = useState(false);
+  const [internalSpeaking, setInternalSpeaking] = useState(false);
+  const [internalAgro, setInternalAgro] = useState(false);
+
+  const showAgro = isAgroMode !== undefined ? isAgroMode : internalAgro;
+  const toggleAgro = onToggleAgro || (() => setInternalAgro(!internalAgro));
+  const isSpeaking = externalSpeaking !== undefined ? externalSpeaking : internalSpeaking;
 
   const cur = weather.current;
   const daily = weather.daily;
@@ -69,6 +81,11 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
 
   // Audio briefing via SpeechSynthesis
   const handleToggleVoice = () => {
+    if (externalToggleVoice) {
+      externalToggleVoice();
+      return;
+    }
+
     if (!("speechSynthesis" in window)) {
       alert("Speech synthesis is not supported on this browser.");
       return;
@@ -76,7 +93,7 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
 
     if (isSpeaking) {
       window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+      setInternalSpeaking(false);
       return;
     }
 
@@ -101,11 +118,11 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
     );
     if (inVoice) utterance.voice = inVoice;
 
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    utterance.onend = () => setInternalSpeaking(false);
+    utterance.onerror = () => setInternalSpeaking(false);
 
     window.speechSynthesis.speak(utterance);
-    setIsSpeaking(true);
+    setInternalSpeaking(true);
   };
 
   // WhatsApp share
@@ -133,7 +150,7 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowAgro(!showAgro)}
+            onClick={toggleAgro}
             className={`px-2.5 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-all shadow-xs ${
               showAgro
                 ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30"
@@ -145,7 +162,7 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
           </button>
 
           <button
-            onClick={handleToggleVoice}
+            onClick={externalToggleVoice || handleToggleVoice}
             className={`px-2.5 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-all shadow-xs ${
               isSpeaking
                 ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30 animate-pulse"

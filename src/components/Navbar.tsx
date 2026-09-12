@@ -91,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onUseCurrentLocation}
               title="Use current GPS location"
-              className="p-1.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-sky-500 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xs"
+              className="p-2 bg-slate-100 active:bg-slate-200 dark:bg-slate-900 dark:active:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-sky-500 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs transition-colors"
             >
               <MapPin className="w-4 h-4" />
             </button>
@@ -100,10 +100,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onToggleUnit}
               title="Toggle Unit"
-              className="px-2 py-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs"
+              className="px-2.5 py-1.5 bg-slate-100 active:bg-slate-200 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs transition-colors"
             >
               <span className={!isFahrenheit ? "text-sky-600 dark:text-sky-400 font-bold" : "text-slate-400"}>°C</span>
-              <span className="text-slate-400 dark:text-slate-600 mx-0.5">|</span>
+              <span className="text-slate-400 dark:text-slate-600 mx-1">|</span>
               <span className={isFahrenheit ? "text-sky-600 dark:text-sky-400 font-bold" : "text-slate-400"}>°F</span>
             </button>
 
@@ -111,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onToggleTheme}
               title="Toggle Theme"
-              className="p-1.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xs"
+              className="p-2 bg-slate-100 active:bg-slate-200 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs transition-colors"
             >
               {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
             </button>

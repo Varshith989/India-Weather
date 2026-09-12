@@ -15,7 +15,7 @@ import { ForecastGrid } from "./components/ForecastGrid";
 import { WeatherStats } from "./components/WeatherStats";
 import { SmartAdvisory } from "./components/SmartAdvisory";
 
-import { AlertTriangle, X, Loader2, Heart, Plus, PhoneCall } from "lucide-react";
+import { AlertTriangle, X, Loader2, Heart, Plus, PhoneCall, Sprout, Volume2, VolumeX } from "lucide-react";
 
 export function App() {
   const [location, setLocation] = useState<GeoLocation>({
@@ -35,6 +35,8 @@ export function App() {
   const [alertDismissed, setAlertDismissed] = useState(false);
   const [currentLang] = useState<Language>("en");
   const [showEmergency, setShowEmergency] = useState(false);
+  const [isAgroMode, setIsAgroMode] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const t = translations[currentLang];
 
@@ -136,6 +138,51 @@ export function App() {
     }
   };
 
+  // Audio briefing via SpeechSynthesis
+  const handleToggleVoice = () => {
+    if (!("speechSynthesis" in window)) {
+      setError("Speech synthesis is not supported on this browser.");
+      return;
+    }
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    if (!weather) return;
+
+    const cur = weather.current;
+    const pm25 = aqi?.current?.pm2_5 || 0;
+    const rainProb = weather.daily.precipitation_probability_max[0] || 0;
+    const textToSpeak = `Hello! Here is your India Weather briefing for ${location.name}. The current temperature is ${Math.round(
+      cur.temperature_2m
+    )} degrees Celsius with humidity at ${cur.relative_humidity_2m} percent. ${
+      rainProb > 40
+        ? `Rain probability is ${rainProb} percent, keep an umbrella handy.`
+        : "No significant rain is expected today."
+    } Air quality is ${
+      pm25 > 100 ? "poor, please consider wearing an N95 mask" : "in the satisfactory range"
+    }. Have a safe and wonderful day!`;
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    const inVoice = voices.find(
+      (v) => v.lang.includes("en-IN") || v.lang.includes("hi-IN")
+    );
+    if (inVoice) utterance.voice = inVoice;
+
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+  };
+
   // Weather Alert detection
   const alert = weather ? evaluateWeatherAlert(weather.current, weather.daily) : null;
 
@@ -190,62 +237,131 @@ export function App() {
           </div>
         )}
 
-        {/* Action Top Bar: Favorite Cities & Emergency SOS toggle */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs w-full">
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-thin w-full sm:w-auto">
-            <span className="text-slate-500 dark:text-slate-400 font-semibold shrink-0 flex items-center gap-1 text-[11px] sm:text-xs">
-              <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> Quick Cities:
-            </span>
-            {favorites.map((fav) => (
-              <button
-                key={fav}
-                onClick={() => handleSelectFavorite(fav)}
-                className={`px-2.5 py-1 rounded-full border shrink-0 transition-all font-medium text-[11px] sm:text-xs ${
-                  location.name.toLowerCase().includes(fav.toLowerCase())
-                    ? "bg-sky-100 text-sky-700 border-sky-300 font-bold dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-500/40"
-                    : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 dark:bg-slate-900/60 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 shadow-xs"
-                }`}
-              >
-                {fav}
-              </button>
-            ))}
+        {/* Unified Elevated Modes & Quick Cities Command Strip */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 w-full bg-white/80 dark:bg-slate-900/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 backdrop-blur-xl shadow-xs transition-colors">
+          {/* Quick Cities Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none w-full md:w-auto">
+            <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0 pr-1">
+              <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+              <span>Favorites:</span>
+            </div>
+            {favorites.map((fav) => {
+              const isActive = location.name.toLowerCase().includes(fav.toLowerCase());
+              return (
+                <button
+                  key={fav}
+                  onClick={() => handleSelectFavorite(fav)}
+                  className={`px-3 py-1 rounded-xl text-xs font-semibold shrink-0 transition-all ${
+                    isActive
+                      ? "bg-sky-500 text-white shadow-xs shadow-sky-500/30"
+                      : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60"
+                  }`}
+                >
+                  {fav}
+                </button>
+              );
+            })}
             <button
               onClick={handleToggleFavorite}
-              title="Save current location"
-              className="px-2 py-1 rounded-full border border-dashed border-slate-300 text-slate-500 hover:text-sky-600 hover:border-sky-400 dark:border-slate-700 dark:text-slate-400 dark:hover:text-sky-400 dark:hover:border-sky-500/50 flex items-center gap-1 shrink-0 transition-colors text-[11px] sm:text-xs"
+              title="Save current location to quick favorites"
+              className="px-2.5 py-1 rounded-xl border border-dashed border-slate-300 hover:border-sky-400 dark:border-slate-700 dark:hover:border-sky-500 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400 text-xs font-medium flex items-center gap-1 shrink-0 transition-colors"
             >
-              <Plus className="w-3 h-3" /> Save current
+              <Plus className="w-3 h-3" /> Save
             </button>
           </div>
 
-          <button
-            onClick={() => setShowEmergency(!showEmergency)}
-            className="px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 dark:bg-rose-500/10 dark:border-rose-500/20 dark:text-rose-400 dark:hover:bg-rose-500/20 flex items-center justify-center gap-1.5 font-semibold transition-colors shadow-xs shrink-0 self-start sm:self-auto text-[11px] sm:text-xs"
-          >
-            <PhoneCall className="w-3 h-3" />
-            <span>Disaster SOS Helplines</span>
-          </button>
+          {/* Top-Notch Mode Switches */}
+          <div className="flex items-center gap-2 shrink-0 self-start md:self-auto overflow-x-auto w-full md:w-auto pt-1 md:pt-0">
+            {/* Agro / Kisan Mode */}
+            <button
+              onClick={() => setIsAgroMode(!isAgroMode)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs shrink-0 ${
+                isAgroMode
+                  ? "bg-emerald-600 text-white shadow-emerald-600/20 ring-2 ring-emerald-500/30"
+                  : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60"
+              }`}
+              title="Toggle Kisan Agro-Meteorology Advisory Mode"
+            >
+              <Sprout className="w-3.5 h-3.5" />
+              <span>{isAgroMode ? "🌾 Agro Mode Active" : "🌾 Kisan Mode"}</span>
+            </button>
+
+            {/* Voice Copilot */}
+            <button
+              onClick={handleToggleVoice}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs shrink-0 ${
+                isSpeaking
+                  ? "bg-sky-500 text-white animate-pulse"
+                  : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60"
+              }`}
+              title="Listen to Speech Synthesis Weather Briefing"
+            >
+              {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+              <span>{isSpeaking ? "Stop Voice" : "🎙️ Voice Briefing"}</span>
+            </button>
+
+            {/* Emergency SOS Drawer Toggle */}
+            <button
+              onClick={() => setShowEmergency(!showEmergency)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs shrink-0 ${
+                showEmergency
+                  ? "bg-rose-600 text-white shadow-rose-600/20"
+                  : "bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30"
+              }`}
+              title="Indian Disaster Management Helplines"
+            >
+              <PhoneCall className="w-3.5 h-3.5" />
+              <span>🚨 SOS Helplines</span>
+            </button>
+          </div>
         </div>
 
-        {/* Disaster Helpline Drawer */}
+        {/* Disaster Helpline Drawer with Direct 1-Tap Dial */}
         {showEmergency && (
-          <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-rose-200 dark:border-rose-500/30 shadow-md grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs w-full">
-            <div className="p-2 sm:p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400 block text-[10px] sm:text-[11px]">NDRF Helpline</span>
-              <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-bold">1078</strong>
-            </div>
-            <div className="p-2 sm:p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400 block text-[10px] sm:text-[11px]">National Emergency</span>
-              <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-bold">112</strong>
-            </div>
-            <div className="p-2 sm:p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400 block text-[10px] sm:text-[11px]">Medical Ambulance</span>
-              <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-bold">108</strong>
-            </div>
-            <div className="p-2 sm:p-2.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400 block text-[10px] sm:text-[11px]">IMD Weather Toll-Free</span>
-              <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-bold">1800-180-1717</strong>
-            </div>
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-slate-900/90 border border-rose-300 dark:border-rose-500/40 shadow-lg grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs w-full animate-fadeIn">
+            <a
+              href="tel:1078"
+              className="p-3 bg-rose-50/70 hover:bg-rose-100/90 dark:bg-rose-950/30 dark:hover:bg-rose-900/40 rounded-xl border border-rose-200 dark:border-rose-800/50 flex flex-col justify-between gap-1 transition-all group shadow-xs"
+            >
+              <span className="text-slate-500 dark:text-slate-400 text-[10px] font-semibold">NDRF Disaster Response</span>
+              <div className="flex items-center justify-between">
+                <strong className="text-rose-600 dark:text-rose-400 text-base font-black">1078</strong>
+                <span className="text-[10px] text-rose-500 font-bold group-hover:underline">Call 📞</span>
+              </div>
+            </a>
+
+            <a
+              href="tel:112"
+              className="p-3 bg-rose-50/70 hover:bg-rose-100/90 dark:bg-rose-950/30 dark:hover:bg-rose-900/40 rounded-xl border border-rose-200 dark:border-rose-800/50 flex flex-col justify-between gap-1 transition-all group shadow-xs"
+            >
+              <span className="text-slate-500 dark:text-slate-400 text-[10px] font-semibold">National Emergency</span>
+              <div className="flex items-center justify-between">
+                <strong className="text-rose-600 dark:text-rose-400 text-base font-black">112</strong>
+                <span className="text-[10px] text-rose-500 font-bold group-hover:underline">Call 📞</span>
+              </div>
+            </a>
+
+            <a
+              href="tel:108"
+              className="p-3 bg-rose-50/70 hover:bg-rose-100/90 dark:bg-rose-950/30 dark:hover:bg-rose-900/40 rounded-xl border border-rose-200 dark:border-rose-800/50 flex flex-col justify-between gap-1 transition-all group shadow-xs"
+            >
+              <span className="text-slate-500 dark:text-slate-400 text-[10px] font-semibold">Emergency Ambulance</span>
+              <div className="flex items-center justify-between">
+                <strong className="text-rose-600 dark:text-rose-400 text-base font-black">108</strong>
+                <span className="text-[10px] text-rose-500 font-bold group-hover:underline">Call 📞</span>
+              </div>
+            </a>
+
+            <a
+              href="tel:18001801717"
+              className="p-3 bg-rose-50/70 hover:bg-rose-100/90 dark:bg-rose-950/30 dark:hover:bg-rose-900/40 rounded-xl border border-rose-200 dark:border-rose-800/50 flex flex-col justify-between gap-1 transition-all group shadow-xs"
+            >
+              <span className="text-slate-500 dark:text-slate-400 text-[10px] font-semibold">IMD Weather Toll-Free</span>
+              <div className="flex items-center justify-between">
+                <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-black">1800-180-1717</strong>
+                <span className="text-[10px] text-rose-500 font-bold group-hover:underline">Call 📞</span>
+              </div>
+            </a>
           </div>
         )}
 
@@ -266,6 +382,7 @@ export function App() {
                   location={location}
                   weather={weather}
                   isFahrenheit={isFahrenheit}
+                  isAgroMode={isAgroMode}
                 />
               </div>
               <div className="lg:col-span-5 w-full">
@@ -308,6 +425,10 @@ export function App() {
               weather={weather}
               aqi={aqi}
               cityName={location.name}
+              isAgroMode={isAgroMode}
+              onToggleAgro={() => setIsAgroMode(!isAgroMode)}
+              isSpeaking={isSpeaking}
+              onToggleVoice={handleToggleVoice}
             />
           </div>
         ) : null}
