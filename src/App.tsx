@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { GeoLocation, WeatherApiResponse, AirQualityResponse } from "./types/weather";
 import type { Language } from "./utils/i18n";
 import { translations } from "./utils/i18n";
@@ -162,7 +162,15 @@ export function App() {
   }, [location.latitude, location.longitude]);
 
   // Audio briefing via SpeechSynthesis
+  const lastToggleTimeRef = useRef(0);
   const handleToggleVoice = () => {
+    const now = Date.now();
+    // Guard against accidental hardware double clicks (< 180ms)
+    if (now - lastToggleTimeRef.current < 180) {
+      return;
+    }
+    lastToggleTimeRef.current = now;
+
     if (isSpeaking) {
       stopSpeaking();
       return;
@@ -300,15 +308,21 @@ export function App() {
             {/* Voice Copilot */}
             <button
               onClick={handleToggleVoice}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs shrink-0 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer active:scale-95 ${
                 isSpeaking
-                  ? "bg-sky-500 text-white animate-pulse"
+                  ? "bg-sky-500 text-white shadow-sky-500/30 animate-pulse ring-2 ring-sky-400/40"
                   : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60"
               }`}
-              title={`Listen to Natural ${speechLang === "hi" ? "Hindi" : "Indian English"} Weather Briefing`}
+              title={
+                isSpeaking
+                  ? speechLang === "hi"
+                    ? "आवाज़ बंद करें"
+                    : "Stop Voice Briefing"
+                  : `Listen to Natural ${speechLang === "hi" ? "Hindi" : "Indian English"} Weather Briefing`
+              }
             >
               {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-              <span>{isSpeaking ? "Stop Voice" : speechLang === "hi" ? "आवाज़ ब्रीफिंग" : "Voice Briefing"}</span>
+              <span>{isSpeaking ? (speechLang === "hi" ? "आवाज़ बंद करें" : "Stop Voice") : speechLang === "hi" ? "आवाज़ ब्रीफिंग" : "Voice Briefing"}</span>
             </button>
 
             {/* Emergency SOS Drawer Toggle */}

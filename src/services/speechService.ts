@@ -51,6 +51,10 @@ export function subscribeSpeakingState(listener: StateListener): () => void {
 let cachedVoices: SpeechSynthesisVoice[] = [];
 let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 let activeUtterance: SpeechSynthesisUtterance | null = null;
+let currentSessionId = 0;
+let pendingSpeakTimer: ReturnType<typeof setTimeout> | null = null;
+let watchdogTimer: ReturnType<typeof setTimeout> | null = null;
+let isSpeechActive = false;
 
 /**
  * Retrieve voices, caching for fast synchronous lookups
@@ -230,11 +234,26 @@ function startKeepAlive() {
 }
 
 /**
- * Safely stops any ongoing speech playback without throwing errors.
+ * Safely stops any ongoing speech playback immediately without throwing errors.
  */
 export function stopSpeaking() {
+  currentSessionId++;
+  isSpeechActive = false;
   clearKeepAlive();
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+  if (pendingSpeakTimer) {
+    clearTimeout(pendingSpeakTimer);
+    pendingSpeakTimer = null;
+  }
+  if (watchdogTimer) {
+    clearTimeout(watchdogTimer);
+    watchdogTimer = null;
+  }
+
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    notifySpeakingState(false);
+    return;
+  }
 
   try {
     window.speechSynthesis.cancel();
@@ -243,11 +262,13 @@ export function stopSpeaking() {
   }
 
   if (activeUtterance) {
+    activeUtterance.onstart = null;
     activeUtterance.onend = null;
     activeUtterance.onerror = null;
     activeUtterance = null;
   }
   if (window.__activeWeatherUtterance) {
+    window.__activeWeatherUtterance.onstart = null;
     window.__activeWeatherUtterance.onend = null;
     window.__activeWeatherUtterance.onerror = null;
     window.__activeWeatherUtterance = null;
@@ -257,11 +278,11 @@ export function stopSpeaking() {
 }
 
 /**
- * Check if speech synthesis is currently active.
+ * Check if speech synthesis is currently active or starting.
  */
 export function isSpeaking(): boolean {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
-  return window.speechSynthesis.speaking;
+  return isSpeechActive || window.speechSynthesis.speaking;
 }
 
 export interface BriefingScriptOptions {
@@ -373,100 +394,150 @@ export interface SpeakWeatherOptions extends BriefingScriptOptions {
 }
 
 /**
- * Bulletproof speech execution with automatic retry, natural cadence, and error immunity.
+ * Bulletproof speech execution with immediate responsiveness, session tracking,
+ * zero audio repetition, and automatic fallback for stuck online voices.
  * Supports both Indian Natural English (en-IN) and Indian Natural Hindi (hi-IN).
  */
-export function speakWeatherBriefing(options: SpeakWeatherOptions, isRetry = false): void {
+export function speakWeatherBriefing(options: SpeakWeatherOptions, _isRetry = false): void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
     console.warn("Speech synthesis is not supported on this browser.");
+    isSpeechActive = false;
     notifySpeakingState(false);
     options.onEnd?.();
     return;
   }
 
-  // Stop any active speech first
+  // 1. Immediately cancel any prior speech or timers
   stopSpeaking();
 
-  // Ensure synthesizer is not suspended or paused
-  if (window.speechSynthesis.paused) {
-    try {
+  // 2. Start a fresh, unique session and notify UI immediately (0ms visual latency)
+  const sessionId = ++currentSessionId;
+  isSpeechActive = true;
+  notifySpeakingState(true);
+  options.onStart?.();
+
+  // 3. Ensure synthesizer is active
+  try {
+    if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
-    } catch {
-      // Ignore
     }
+  } catch {
+    // Ignore
   }
 
   const lang = options.speechLang || "en";
   const text = lang === "hi" ? buildNaturalHindiBriefingScript(options) : buildNaturalEnglishBriefingScript(options);
 
-  // Chrome requires a small delay after cancel() before starting a new utterance
-  setTimeout(() => {
+  const executeSpeak = (chosenVoice?: SpeechSynthesisVoice | null) => {
+    if (sessionId !== currentSessionId) return;
+
     try {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang === "hi" ? "hi-IN" : "en-IN";
-      // Natural, warm cadence (0.92 rate gives clear Indian pronunciation)
-      utterance.rate = 0.92;
+      utterance.rate = 0.95;
       utterance.pitch = 1.0;
 
-      const voiceChoice = getBestIndianVoice(lang);
-      if (!isRetry && voiceChoice.voice) {
-        utterance.voice = voiceChoice.voice;
+      const voiceToUse = chosenVoice !== undefined ? chosenVoice : getBestIndianVoice(lang).voice;
+      if (voiceToUse) {
+        utterance.voice = voiceToUse;
       }
 
-      // Maintain persistent references to prevent garbage collection mid-speech
+      // Maintain persistent reference to prevent V8 GC mid-speech
       activeUtterance = utterance;
       window.__activeWeatherUtterance = utterance;
 
+      let speechStarted = false;
+
       utterance.onstart = () => {
+        if (sessionId !== currentSessionId) return;
+        speechStarted = true;
+        if (watchdogTimer) {
+          clearTimeout(watchdogTimer);
+          watchdogTimer = null;
+        }
         startKeepAlive();
         notifySpeakingState(true);
-        options.onStart?.();
       };
 
       utterance.onend = () => {
+        if (sessionId !== currentSessionId) return;
         clearKeepAlive();
+        if (watchdogTimer) {
+          clearTimeout(watchdogTimer);
+          watchdogTimer = null;
+        }
         activeUtterance = null;
         window.__activeWeatherUtterance = null;
+        isSpeechActive = false;
         notifySpeakingState(false);
         options.onEnd?.();
       };
 
       utterance.onerror = (event) => {
+        if (sessionId !== currentSessionId) return;
         clearKeepAlive();
+        if (watchdogTimer) {
+          clearTimeout(watchdogTimer);
+          watchdogTimer = null;
+        }
         activeUtterance = null;
         window.__activeWeatherUtterance = null;
 
-        // Normal stop/cancel by user is not an error
+        // Canceled or interrupted by user stop/toggle
         if (event.error === "canceled" || event.error === "interrupted") {
+          isSpeechActive = false;
           notifySpeakingState(false);
           options.onEnd?.();
           return;
         }
 
         console.warn("Speech synthesis notice:", event.error);
-
-        // If an online natural voice failed (e.g. network timeout), retry once with offline voice seamlessly
-        if (!isRetry && (event.error === "network" || event.error === "audio-busy" || event.error === "not-allowed")) {
-          try {
-            speakWeatherBriefing(options, true);
-            return;
-          } catch {
-            // Graceful exit
-          }
-        }
-
+        isSpeechActive = false;
         notifySpeakingState(false);
         options.onEnd?.();
       };
 
+      // Watchdog: If an online network voice stalls without starting in 1200ms, fallback to local voice
+      if (voiceToUse && !voiceToUse.localService) {
+        watchdogTimer = setTimeout(() => {
+          if (sessionId !== currentSessionId) return;
+          if (!speechStarted) {
+            console.warn("Online voice latency detected; seamlessly switching to local speech for fast responsiveness.");
+            try {
+              window.speechSynthesis.cancel();
+            } catch {
+              // Ignore
+            }
+            // Execute fallback with system default
+            executeSpeak(null);
+          }
+        }, 1200);
+      }
+
       window.speechSynthesis.speak(utterance);
+
+      // Chromium queue unfreezing
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
     } catch (err) {
       console.warn("Speech synthesis safe fallback:", err);
       clearKeepAlive();
+      if (watchdogTimer) {
+        clearTimeout(watchdogTimer);
+        watchdogTimer = null;
+      }
       activeUtterance = null;
       window.__activeWeatherUtterance = null;
+      isSpeechActive = false;
       notifySpeakingState(false);
       options.onEnd?.();
     }
-  }, 70);
+  };
+
+  // Minimal settling delay to allow any pending cancel() to clear cleanly in Chromium
+  pendingSpeakTimer = setTimeout(() => {
+    pendingSpeakTimer = null;
+    executeSpeak();
+  }, 15);
 }

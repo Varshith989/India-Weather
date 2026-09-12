@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { WeatherApiResponse, AirQualityResponse } from "../types/weather";
 import {
   Sparkles,
@@ -10,7 +10,7 @@ import {
   Share2,
 } from "lucide-react";
 import type { SpeechLanguage } from "../services/speechService";
-import { speakWeatherBriefing, stopSpeaking } from "../services/speechService";
+import { speakWeatherBriefing, stopSpeaking, subscribeSpeakingState } from "../services/speechService";
 
 interface SmartAdvisoryProps {
   weather: WeatherApiResponse;
@@ -32,6 +32,11 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
   onSelectSpeechLang,
 }) => {
   const [internalSpeaking, setInternalSpeaking] = useState(false);
+  useEffect(() => {
+    if (externalSpeaking === undefined) {
+      return subscribeSpeakingState(setInternalSpeaking);
+    }
+  }, [externalSpeaking]);
   const isSpeaking = externalSpeaking !== undefined ? externalSpeaking : internalSpeaking;
 
   const cur = weather.current;
@@ -70,7 +75,6 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
 
     if (isSpeaking) {
       stopSpeaking();
-      setInternalSpeaking(false);
       return;
     }
 
@@ -83,8 +87,6 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
       rainProbability: rainProb,
       pm25,
       speechLang,
-      onStart: () => setInternalSpeaking(true),
-      onEnd: () => setInternalSpeaking(false),
     });
   };
 
@@ -142,15 +144,21 @@ export const SmartAdvisory: React.FC<SmartAdvisoryProps> = ({
 
           <button
             onClick={externalToggleVoice || handleToggleVoice}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-all shadow-xs ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 ${
               isSpeaking
-                ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30 animate-pulse"
+                ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30 animate-pulse ring-2 ring-rose-400/30"
                 : "bg-sky-50 text-sky-700 hover:bg-sky-100 border-sky-300 dark:bg-sky-500/20 dark:text-sky-400 dark:border-sky-500/30 dark:hover:bg-sky-500/30"
             }`}
-            title={`Listen to Natural ${speechLang === "hi" ? "Hindi" : "Indian English"} Weather Briefing`}
+            title={
+              isSpeaking
+                ? speechLang === "hi"
+                  ? "आवाज़ बंद करें"
+                  : "Stop Voice Briefing"
+                : `Listen to Natural ${speechLang === "hi" ? "Hindi" : "Indian English"} Weather Briefing`
+            }
           >
             {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-            <span>{isSpeaking ? "Stop Voice" : speechLang === "hi" ? "आवाज़ ब्रीफिंग" : "Voice Briefing"}</span>
+            <span>{isSpeaking ? (speechLang === "hi" ? "आवाज़ बंद करें" : "Stop Voice") : speechLang === "hi" ? "आवाज़ ब्रीफिंग" : "Voice Briefing"}</span>
           </button>
 
           <button
