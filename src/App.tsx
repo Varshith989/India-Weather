@@ -282,7 +282,7 @@ export function App() {
                 }`}
                 title="Natural Indian English Speech"
               >
-                🇮🇳 English
+                English
               </button>
               <button
                 onClick={() => handleSelectSpeechLang("hi")}
@@ -293,7 +293,7 @@ export function App() {
                 }`}
                 title="भारतीय प्राकृतिक हिंदी आवाज़"
               >
-                🇮🇳 हिन्दी
+                हिन्दी
               </button>
             </div>
 
@@ -308,7 +308,7 @@ export function App() {
               title={`Listen to Natural ${speechLang === "hi" ? "Hindi" : "Indian English"} Weather Briefing`}
             >
               {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-              <span>{isSpeaking ? "Stop Voice" : speechLang === "hi" ? "🎙️ आवाज़ ब्रीफिंग" : "🎙️ Voice Briefing"}</span>
+              <span>{isSpeaking ? "Stop Voice" : speechLang === "hi" ? "आवाज़ ब्रीफिंग" : "Voice Briefing"}</span>
             </button>
 
             {/* Emergency SOS Drawer Toggle */}
